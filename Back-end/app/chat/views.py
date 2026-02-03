@@ -1,4 +1,4 @@
-from rest_framework import APIView
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import Message
 from .services import generate_response, detect_crisis, crisis_message
