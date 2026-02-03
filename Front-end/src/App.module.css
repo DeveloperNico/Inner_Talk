@@ -1,0 +1,63 @@
+@import url('./index.css');
+
+.container {
+    min-height: 100vh;
+    background: linear-gradient(to bottom, #e0f2f1, #f3f9f7);
+    text-align: center;
+    padding: 2rem 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.iconMessageCircleHeart {
+    padding: 15px;
+    background: linear-gradient(135deg, #3b9b8a 50%, #8f7ab3);
+    color: #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.title {
+    background: linear-gradient(to right, #3b9b8a, #8f7ab3);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    font-size: 3.5rem;
+    font-weight: 900;
+    font-family: var(--font-secondary);
+}
+
+.description {
+    font-size: 1.125rem;
+    color: #7f918d;
+    font-family: var(--font-main);
+    max-width: 28rem;
+    margin: 0 auto;
+    line-height: 1.75rem;
+}
+
+.featuresContainer {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    padding-top: 1rem;
+}
+
+.featureItem {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    background-color: #f8f8f8;
+    padding: 10px;
+    border-radius: 99px;
+    font-family: var(--font-main);
+    color: #3b9b8a;
+}

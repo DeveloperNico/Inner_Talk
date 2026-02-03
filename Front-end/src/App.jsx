@@ -1,33 +1,40 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Heart, Shield, MessageCircleHeart } from 'lucide-react';
+import styles from './App.module.css'
+
+import { ChatBot } from './components/ChatBot/ChatBot';
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <main className={styles.container}>
+        <div className={styles.iconMessageCircleHeart}>
+          <MessageCircleHeart size={40} />
+        </div>
+
+        <div className={styles.textContainer}>
+          <h1 className={styles.title}>
+            Inner Talk
+          </h1>
+          <p className={styles.description}>
+            Um espaço seguro para você compartilhar seus sentimentos e receber palavras de acolhimento
+          </p>
+        </div>
+
+        <div className={styles.featuresContainer}>
+          <div className={styles.featureItem}>
+            <Heart className="h-4 w-4 text-primary" />
+            <span>Escuta empática</span>
+          </div>
+          <div className={styles.featureItem}>
+            <Shield className="" />
+            <span>Espaço seguro</span>
+          </div>
+        </div>
+      
+        <ChatBot />
+      </main>
+
     </>
   )
 }
