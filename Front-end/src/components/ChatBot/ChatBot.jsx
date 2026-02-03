@@ -96,7 +96,7 @@ Estou aqui para ouvir você com carinho e oferecer palavras de conforto. Pode me
                                 <h4>CAPS</h4>
                                 <ExternalLink size={14} className={styles.externalIcon} />
                             </div>
-                            <p>Centros de Atenção Psicossocial - Rede pública de sapude mental</p>
+                            <p>Centros de Atenção Psicossocial - Rede pública de saúde mental</p>
                         </div>
                     </a>
                 </div>
