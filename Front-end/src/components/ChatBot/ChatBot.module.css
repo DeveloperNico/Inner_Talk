@@ -1,10 +1,30 @@
 @import '../../index.css';
 
+.mainLayout {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
 .chatBotContainer {
-    /* border: 2px solid black; */
     max-width: 800px;
     height: auto;
     margin-top: 2rem;
+}
+
+.sidebarContainer {
+    flex: 0 0 320px;
+    position: sticky;
+    top: 2rem;
+    margin-top: 2rem;
+}
+
+.chatBotContainer {
+    flex: 1;
+    max-width: 800px;
+    height: auto;
 }
 
 .headerChatBotContainer {
@@ -47,6 +67,9 @@
 .contentChatBotContainer {
     background-color: #ffffff;
     padding: 30px;
+    max-height: 500px;
+    overflow-y: auto;
+    scroll-behavior: smooth;
     font-family: var(--font-secondary);
 }
 
@@ -85,6 +108,11 @@
     background-color: #3b9b8a;
     color: #ffffff;
     border-radius: 15px 0 15px 15px;
+}
+
+.messageBot,
+.messageUser {
+    animation: slideIn 0.3s ease-out;
 }
 
 .icon {
@@ -126,12 +154,16 @@
 
 .inputChatBot {
     width: 600px;
-    height: 50px;
+    min-height: 50px;
     border: none;
     font-size: 16px;
-    padding: 20px;
+    padding: 15px 20px;
     border-radius: 8px;
     outline: none;
+    resize: none;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+    line-height: 1.5;
 }
 
 .sendButton {
@@ -144,6 +176,7 @@
     border: none;
     background-color: #7dbbb0;
     color: #ffffff;
+    cursor: pointer;
 }
 
 .alertMessage {
@@ -157,6 +190,72 @@
         font-size: 14px;
         text-align: justify;
     }
+}
+
+.resourcesContainer {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    font-family: var(--font-secondary);
+}
+
+.cardContent {
+    flex: 1;
+}
+
+.cardHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.externalIcon {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.cardResources {
+    background-color: #dfdfdf40;
+    border-radius: 15px;
+    margin-top: 15px;
+    display: flex;
+    padding: 10px;
+    gap: 10px;
+    text-align: left;
+    text-decoration: none;
+    color: inherit;
+    transition: 0.2s ease-in-out;
+
+    h4 {
+        font-size: 14px;
+    }
+
+    p {
+        font-size: 12px;
+        margin-top: 5px;
+    }
+}
+
+.cardResources:hover {
+    background-color: #dfdfdf60;
+    cursor: pointer;
+}
+
+.cardResources:hover .externalIcon {
+    opacity: 1;
+}
+
+.iconPhone {
+    background-color: #3b9b8a40;
+    color: #3b9b8a;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    padding: 5px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
 }
 
 .spanAlert {
@@ -180,14 +279,10 @@
     background-color: #5f482010;
     padding: 10px;
     border-radius: 30px;
+    text-decoration: none;
+    color: #604520;
 
     p {
-        font-size: 12px;
-    }
-
-    a {
-        text-decoration: none;
-        color: #604520;
         font-size: 12px;
     }
 }
@@ -195,4 +290,15 @@
 .alertLinks:hover {
     background-color: #5f482020;
     cursor: pointer;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
