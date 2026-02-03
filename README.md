@@ -1,5 +1,4 @@
 # 🧠 Inner Talk — Assistente Virtual de Apoio Emocional  
-# 🧠 Inner Talk — Emotional Support Virtual Assistant
 
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white)
@@ -134,6 +133,23 @@ Em caso de emergência:
 
 ---
 
+# 👨‍💻 Desenvolvedor
+
+Desenvolvido por **DeveloperNico** com 💚  
+Projeto focado em **IA + suporte emocional**.
+
+---
+
+# 🧠 Inner Talk — Emotional Support Virtual Assistant
+
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4-38B2AC?logo=tailwind-css&logoColor=white)
+![Django](https://img.shields.io/badge/Django-5-092E20?logo=django&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
+![OpenAI](https://img.shields.io/badge/OpenAI-API-412991?logo=openai&logoColor=white)
+![License](https://img.shields.io/badge/license-Educational-lightgrey)
+
 ---
 
 # 🇺🇸 English
@@ -260,11 +276,5 @@ If you need immediate help:
 
 # 👨‍💻 Developer
 
-Developed by **Nicolas** with 💚  
-Academic project focused on **AI + emotional support**.
-
----
-
-# 📄 License
-
-Educational use only.
+Developed by **DeveloperNico** with 💚  
+Project focused on **AI + emotional support**.
