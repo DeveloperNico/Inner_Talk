@@ -28,10 +28,13 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 SECRET_KEY = 'django-insecure-6!d@8!f)1bt@5!g-md*)3&c+f532z*n2!6-=r-x8h3(r-ag)bv'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DJANGO_DEBUG", "false").lower() == "true"
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "inner-talk.onrender.com",
+]
 
 # Application definition
 
@@ -67,6 +70,11 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
+    "https://inner-talk-dun.vercel.app",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://inner-talk-dun.vercel.app",
 ]
 
 ROOT_URLCONF = 'innerTalk.urls'

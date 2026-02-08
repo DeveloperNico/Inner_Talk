@@ -33,7 +33,7 @@ Estou aqui para ouvir você com carinho e oferecer palavras de conforto. Pode me
         setIsLoading(true);
 
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/chat/', {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/chat/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', },
                 body: JSON.stringify({ message: inputMessage }),
