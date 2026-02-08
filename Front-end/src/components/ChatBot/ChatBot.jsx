@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import styles from './ChatBot.module.css';
 
-import { Sparkles, Send, TriangleAlert, Phone, ExternalLink, Bot, User, Building2, Heart } from 'lucide-react';
+import { Sparkles, Send, TriangleAlert, Phone, ExternalLink, Bot, User, Building2, Heart, RotateCcw } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 export function ChatBot() {
-    const [messages, setMessages] = useState([
+    const initialMessages = [
         {
             role: 'bot',
             content: `Olá! 💚 Eu sou o **Thery**, seu assistente virtual de apoio emocional.
@@ -14,7 +14,8 @@ Estou aqui para ouvir você com carinho e oferecer palavras de conforto. Pode me
 
 **Lembre-se:** sou uma IA e estou aqui para um primeiro acolhimento. Para questões mais profundas, é sempre importante buscar um profissional de saúde mental.`
         }
-    ]);
+    ];
+    const [messages, setMessages] = useState(initialMessages);
     const [inputMessage, setInputMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef(null);
@@ -53,6 +54,12 @@ Estou aqui para ouvir você com carinho e oferecer palavras de conforto. Pode me
         setInputMessage(e.target.value);
         e.target.style.height = 'auto';
         e.target.style.height = e.target.scrollHeight + 'px';
+    }
+
+    const handleResetConversation = () => {
+        setMessages(initialMessages);
+        setInputMessage('');
+        setIsLoading(false);
     }
 
     return (
@@ -132,6 +139,14 @@ Estou aqui para ouvir você com carinho e oferecer palavras de conforto. Pode me
                         <h3>Inner Talk</h3>
                         <p>Seu espaço seguro de acolhimento</p>
                     </div>
+                    <button
+                        type="button"
+                        onClick={handleResetConversation}
+                        className={styles.newConversationButton}
+                    >
+                        <RotateCcw size={16} />
+                        <span>Nova conversa</span>
+                    </button>
                 </div>
 
                 {/* Conteúdo do chat */}

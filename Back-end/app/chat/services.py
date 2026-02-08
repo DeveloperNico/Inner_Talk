@@ -1,11 +1,17 @@
 import os
-from pyexpat.errors import messages
 from openai import OpenAI
 from .prompts import BASE_PROMPT
 
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "openai/gpt-5.2")
+OPENROUTER_MAX_TOKENS = int(os.getenv("OPENROUTER_MAX_TOKENS", "1024"))
+OPENROUTER_SITE_URL = os.getenv("OPENROUTER_SITE_URL", "")
+OPENROUTER_SITE_NAME = os.getenv("OPENROUTER_SITE_NAME", "")
+
 client = OpenAI(
-    base_url="http://localhost:11434/v1",
-    api_key="ollama", 
+        base_url=OPENROUTER_BASE_URL,
+        api_key=OPENROUTER_API_KEY,
 )
 
 CRISIS_WORDS = [
@@ -31,7 +37,7 @@ def generate_response(history_queryset):
     # monta lista do histórico
     messages = [
         {
-            "role": msg.role,
+            "role": "assistant" if msg.role == "bot" else msg.role,
             "content": msg.content
         }
         for msg in history_queryset
@@ -44,10 +50,18 @@ def generate_response(history_queryset):
         "content": BASE_PROMPT
     })
 
+    extra_headers = {}
+    if OPENROUTER_SITE_URL:
+        extra_headers["HTTP-Referer"] = OPENROUTER_SITE_URL
+    if OPENROUTER_SITE_NAME:
+        extra_headers["X-Title"] = OPENROUTER_SITE_NAME
+
     response = client.chat.completions.create(
-        model="llama3",
+        model=OPENROUTER_MODEL,
         messages=messages,
         temperature=0.7,
+        max_tokens=OPENROUTER_MAX_TOKENS,
+        extra_headers=extra_headers or None,
     )
 
     return response.choices[0].message.content
