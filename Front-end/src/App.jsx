@@ -1,12 +1,13 @@
-import { useState } from 'react'
 import { Heart, Shield, MessageCircleHeart } from 'lucide-react';
 import styles from './App.module.css'
 
 import { ChatBot } from './components/ChatBot/ChatBot';
+import { PageTitle } from './components/PageTitle/PageTitle';
 
 function App() {
   return (
     <>
+      <PageTitle />
       <main className={styles.container}>
         <div className={styles.iconMessageCircleHeart}>
           <MessageCircleHeart size={40} />
