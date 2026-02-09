@@ -1,11 +1,11 @@
 import os
-from openai import OpenAI
+from openai import OpenAI, APIStatusError
 from .prompts import BASE_PROMPT
 
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "openai/gpt-5.2")
-OPENROUTER_MAX_TOKENS = int(os.getenv("OPENROUTER_MAX_TOKENS", "1024"))
+OPENROUTER_MAX_TOKENS = int(os.getenv("OPENROUTER_MAX_TOKENS", "512"))
 OPENROUTER_SITE_URL = os.getenv("OPENROUTER_SITE_URL", "")
 OPENROUTER_SITE_NAME = os.getenv("OPENROUTER_SITE_NAME", "")
 
@@ -56,13 +56,22 @@ def generate_response(history_queryset):
     if OPENROUTER_SITE_NAME:
         extra_headers["X-Title"] = OPENROUTER_SITE_NAME
 
-    response = client.chat.completions.create(
-        model=OPENROUTER_MODEL,
-        messages=messages,
-        temperature=0.7,
-        max_tokens=OPENROUTER_MAX_TOKENS,
-        extra_headers=extra_headers or None,
-    )
+    max_tokens = OPENROUTER_MAX_TOKENS
+    while True:
+        try:
+            response = client.chat.completions.create(
+                model=OPENROUTER_MODEL,
+                messages=messages,
+                temperature=0.7,
+                max_tokens=max_tokens,
+                extra_headers=extra_headers or None,
+            )
+            break
+        except APIStatusError as exc:
+            if exc.status_code == 402 and max_tokens > 128:
+                max_tokens = max(128, max_tokens // 2)
+                continue
+            raise
 
     return response.choices[0].message.content
 

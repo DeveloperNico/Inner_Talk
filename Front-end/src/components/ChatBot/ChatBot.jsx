@@ -33,11 +33,21 @@ Estou aqui para ouvir você com carinho e oferecer palavras de conforto. Pode me
         setIsLoading(true);
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/chat/`, {
+            const apiUrl = `${import.meta.env.VITE_API_URL}/api/chat/`;
+            console.log('API URL:', apiUrl);
+
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', },
                 body: JSON.stringify({ message: inputMessage }),
             });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('API error status:', response.status);
+                console.error('API error body:', errorText);
+                throw new Error('API error');
+            }
 
             const data = await response.json();
 

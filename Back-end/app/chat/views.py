@@ -1,5 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
 from .models import Message
 from .services import generate_response, detect_crisis, crisis_message
 
@@ -21,6 +22,9 @@ def is_farewell(text: str) -> bool:
     return any(word in text for word in FAREWELL_WORDS)
 
 class SendMessageView(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
     def post(self, request):
         user_text = request.data.get("message")
 
