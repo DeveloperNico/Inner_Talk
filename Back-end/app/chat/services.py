@@ -11,7 +11,7 @@ OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 # MODELO GRATUITO FIXO
-OPENROUTER_MODEL = "arcee-ai/trinity-large-preview"
+OPENROUTER_MODEL = "arcee-ai/trinity-large-preview:free"
 
 MAX_TOKENS = 512
 
