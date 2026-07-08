@@ -1,24 +1,29 @@
-import os
+﻿import os
 from openai import OpenAI, APIStatusError
 from .prompts import BASE_PROMPT
 
 
 # ==============================
-# CONFIGURAÇÃO OPENROUTER
+# CONFIGURACAO OPENROUTER
 # ==============================
 
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 # MODELO GRATUITO FIXO
-OPENROUTER_MODEL = "arcee-ai/trinity-large-preview:free"
+OPENROUTER_MODEL = "poolside/laguna-xs-2.1:free"
 
 MAX_TOKENS = 512
 
-client = OpenAI(
-    base_url=OPENROUTER_BASE_URL,
-    api_key=OPENROUTER_API_KEY,
-)
+
+def get_client():
+    api_key = os.getenv("OPENROUTER_API_KEY")
+    if not api_key:
+        return None
+
+    return OpenAI(
+        base_url=OPENROUTER_BASE_URL,
+        api_key=api_key,
+    )
 
 
 # ==============================
@@ -48,13 +53,14 @@ def crisis_message():
 
 
 # ==============================
-# GERAÇÃO DE RESPOSTA
+# GERACAO DE RESPOSTA
 # ==============================
 
-def generate_response(history_queryset):
 
-    if not OPENROUTER_API_KEY:
-        raise Exception("OPENROUTER_API_KEY não configurada no ambiente.")
+def generate_response(history_queryset):
+    client = get_client()
+    if not client:
+        return "OPENROUTER_API_KEY não configurada no ambiente."
 
     # monta histórico
     messages = [

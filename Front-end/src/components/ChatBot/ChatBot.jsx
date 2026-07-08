@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import styles from './ChatBot.module.css';
 
 import { Sparkles, Send, TriangleAlert, Phone, ExternalLink, Bot, User, Building2, Heart, RotateCcw } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+
+const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000').replace(/\/$/, '');
 
 export function ChatBot() {
     const initialMessages = [
@@ -33,15 +35,42 @@ Estou aqui para ouvir você com carinho e oferecer palavras de conforto. Pode me
         setIsLoading(true);
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/chat/`, {
+            const response = await fetch(`${API_BASE_URL}/api/chat/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', },
                 body: JSON.stringify({ message: inputMessage }),
             });
 
-            const data = await response.json();
+            const rawBody = await response.text();
+            let data = {};
 
-            setMessages(prev => [...prev, { role: 'bot', content: data.reply }]);
+            if (rawBody) {
+                try {
+                    data = JSON.parse(rawBody);
+                } catch (parseError) {
+                    console.error('Erro ao parsear resposta da API:', parseError, rawBody);
+                }
+            }
+
+            if (!response.ok) {
+                const apiError = data?.error || data?.detail || `Erro HTTP ${response.status}`;
+                console.error('Falha da API /api/chat/', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    body: rawBody,
+                });
+                setMessages(prev => [...prev, { role: 'bot', content: `Não consegui responder agora: ${apiError}` }]);
+                return;
+            }
+
+            const reply = data?.reply;
+            if (!reply) {
+                console.error('Resposta sem campo reply:', data);
+                setMessages(prev => [...prev, { role: 'bot', content: 'A resposta veio em formato inesperado. Verifique o backend.' }]);
+                return;
+            }
+
+            setMessages(prev => [...prev, { role: 'bot', content: reply }]);
         } catch (error) {
             console.error('Erro ao chamar API:', error);
             setMessages(prev => [...prev, { role: 'bot', content: 'Desculpe, ocorreu um erro ao processar sua solicitação.' }]);
