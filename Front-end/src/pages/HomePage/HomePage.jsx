@@ -2,9 +2,12 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import styles from './HomePage.module.css';
 
+import { Header } from '../../components/Header/Header';
+
 export function HomePage() {
     return (
         <>
+            <Header />
             <h1>Home Page</h1>
 
             <div className={styles.container}>
