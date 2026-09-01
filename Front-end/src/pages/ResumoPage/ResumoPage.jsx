@@ -1,54 +1,58 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { LayoutDashboard, NotebookText, LogIn, Stethoscope } from 'lucide-react';
+import { LayoutDashboard, NotebookText, LogIn, Sparkles, Stethoscope } from 'lucide-react';
 
 import { Header } from '../../components/Header/Header';
 import { PageTitle } from '../../components/PageTitle/PageTitle';
-import { getMoodAverage, getMoodOption } from '../../data/moods';
-import { getStoredUser, getWeekCheckIns, getWeekDiarioEntries } from '../../data/storage';
-
-function buildOwnWeekSeries(checkIns) {
-    const days = [];
-    for (let offset = 6; offset >= 0; offset -= 1) {
-        const date = new Date();
-        date.setDate(date.getDate() - offset);
-
-        const entry = checkIns.find(
-            (checkIn) => new Date(checkIn.date).toDateString() === date.toDateString()
-        );
-
-        days.push({
-            label: date.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', ''),
-            mood: entry ? entry.mood : null,
-        });
-    }
-    return days;
-}
+import { getMoodOption } from '../../data/moods';
+import { getOwnWeeklySummary, getStoredUser } from '../../data/storage';
 
 function formatExcerptDate(isoDate) {
     return new Date(isoDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
 }
 
+function formatWeekday(isoDate) {
+    return new Date(isoDate).toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
+}
+
 export function ResumoPage() {
     const [user] = useState(() => getStoredUser());
-    const [ownCheckIns, setOwnCheckIns] = useState([]);
-    const [ownDiario, setOwnDiario] = useState([]);
+    const [summary, setSummary] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState('');
 
     useEffect(() => {
-        if (user?.role === 'paciente') {
-            setOwnCheckIns(getWeekCheckIns());
-            setOwnDiario(getWeekDiarioEntries());
-        }
+        let isCancelled = false;
+
+        const loadSummary = async () => {
+            if (!user || user.role !== 'paciente') {
+                setIsLoading(false);
+                return;
+            }
+
+            try {
+                const payload = await getOwnWeeklySummary();
+                if (!isCancelled) {
+                    setSummary(payload);
+                    setErrorMessage('');
+                }
+            } catch (error) {
+                if (!isCancelled) {
+                    setErrorMessage(error.message || 'Não foi possível carregar o resumo da semana.');
+                }
+            } finally {
+                if (!isCancelled) {
+                    setIsLoading(false);
+                }
+            }
+        };
+
+        loadSummary();
+
+        return () => {
+            isCancelled = true;
+        };
     }, [user]);
-
-    const weekSeries = useMemo(() => buildOwnWeekSeries(ownCheckIns), [ownCheckIns]);
-
-    const moodAverage = useMemo(() => {
-        const entries = weekSeries.filter((day) => day.mood !== null).map((day) => ({ mood: day.mood }));
-        return getMoodAverage(entries);
-    }, [weekSeries]);
-
-    const diaryExcerpts = ownDiario.map((entry) => ({ date: entry.date, text: entry.content }));
 
     if (!user) {
         return (
@@ -92,7 +96,15 @@ export function ResumoPage() {
         );
     }
 
-    const averageMoodOption = moodAverage ? getMoodOption(Math.round(moodAverage)) : null;
+    const weekSeries = summary?.weekSeries || [];
+    const diaryExcerpts = summary?.diaryExcerpts || [];
+    const averageMoodOption = typeof summary?.moodAverage === 'number'
+        ? getMoodOption(Math.round(summary.moodAverage))
+        : null;
+    const summarySource = summary?.aiSummaryMeta?.source || 'unknown';
+    const summaryModel = summary?.aiSummaryMeta?.model || '-';
+    const fallbackReason = summary?.aiSummaryMeta?.fallbackReason || '';
+    const isAiSummary = summarySource === 'ai';
 
     return (
         <>
@@ -113,6 +125,12 @@ export function ResumoPage() {
                         </p>
                     </div>
 
+                    {errorMessage && (
+                        <div className="bg-red-50 border border-red-100 rounded-2xl px-4 py-3 text-sm text-red-600 font-main">
+                            {errorMessage}
+                        </div>
+                    )}
+
                     <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 md:p-8 flex flex-col gap-6">
                         <div className="flex items-center justify-between flex-wrap gap-3">
                             <h2 className="text-lg font-bold font-secondary text-slate-900">
@@ -128,19 +146,21 @@ export function ResumoPage() {
                             )}
                         </div>
 
-                        {!averageMoodOption && (
+                        {isLoading ? (
+                            <p className="text-sm text-slate-500 font-main">Carregando resumo...</p>
+                        ) : weekSeries.length === 0 ? (
                             <p className="text-sm text-slate-500 font-main">
                                 Ainda não há check-ins registrados nesta semana.
                             </p>
-                        )}
+                        ) : null}
 
                         <div className="flex items-end justify-between gap-2 h-36">
-                            {weekSeries.map((day, index) => {
+                            {weekSeries.map((day) => {
                                 const moodOption = day.mood ? getMoodOption(day.mood) : null;
                                 const heightPercent = day.mood ? (day.mood / 5) * 100 : 8;
 
                                 return (
-                                    <div key={index} className="flex flex-col items-center gap-2 flex-1">
+                                    <div key={day.date} className="flex flex-col items-center gap-2 flex-1">
                                         <div className="w-full h-28 flex items-end">
                                             <div
                                                 className="w-full rounded-t-lg transition-all"
@@ -152,13 +172,13 @@ export function ResumoPage() {
                                             />
                                         </div>
                                         <span className="text-xs text-slate-400 font-main capitalize">
-                                            {day.label}
+                                            {formatWeekday(day.date)}
                                         </span>
                                     </div>
                                 );
                             })}
                         </div>
-                    </div>
+                    </div> 
 
                     <div className="flex flex-col gap-3">
                         <h2 className="text-lg font-bold font-secondary text-slate-900 flex items-center gap-2">
@@ -166,22 +186,22 @@ export function ResumoPage() {
                             Trechos do diário
                         </h2>
 
-                        {diaryExcerpts.length === 0 && (
+                        {!isLoading && diaryExcerpts.length === 0 && (
                             <p className="text-sm text-slate-500 font-main">
                                 Nenhuma entrada de diário nesta semana.
                             </p>
                         )}
 
                         <div className="flex flex-col gap-3">
-                            {diaryExcerpts.slice(0, 5).map((excerpt, index) => (
+                            {diaryExcerpts.map((excerpt) => (
                                 <div
-                                    key={index}
+                                    key={excerpt.id}
                                     className="bg-white rounded-2xl border border-slate-200 px-5 py-4"
                                 >
                                     <p className="text-xs text-slate-400 font-main mb-1">
                                         {formatExcerptDate(excerpt.date)}
                                     </p>
-                                    <p className="text-sm text-slate-600 font-main">
+                                    <p className="text-sm text-slate-600 font-main whitespace-pre-wrap">
                                         {excerpt.text}
                                     </p>
                                 </div>

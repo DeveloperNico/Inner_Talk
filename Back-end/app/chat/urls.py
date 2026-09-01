@@ -1,12 +1,29 @@
 from django.urls import path
 
+from .calendar_views import (
+    CalendarAppointmentCancelView,
+    CalendarAppointmentListCreateView,
+    CalendarAppointmentRescheduleView,
+    CalendarBlockedDaysView,
+    CalendarOverviewView,
+    CalendarSettingsView,
+)
 from .views import (
     AuthTokenRefreshView,
+    CheckInListCreateView,
     CurrentUserView,
+    DiaryEntryDetailView,
+    DiaryEntryListCreateView,
+    DiarySuggestionView,
     GoogleAuthView,
     LoginView,
+    PatientPsychologistView,
+    PsychologistListView,
+    PsychologistPatientDetailView,
+    PsychologistPatientsView,
     RegisterView,
     SendMessageView,
+    WeeklySummaryView,
 )
 
 urlpatterns = [
@@ -16,4 +33,19 @@ urlpatterns = [
     path('auth/me/', CurrentUserView.as_view()),
     path('auth/token/refresh/', AuthTokenRefreshView.as_view()),
     path('chat/', SendMessageView.as_view()),
+    path('check-ins/', CheckInListCreateView.as_view()),
+    path('diary/', DiaryEntryListCreateView.as_view()),
+    path('diary/suggestion/', DiarySuggestionView.as_view()),
+    path('diary/<int:entry_id>/', DiaryEntryDetailView.as_view()),
+    path('summary/week/', WeeklySummaryView.as_view()),
+    path('psychologists/', PsychologistListView.as_view()),
+    path('patient/psychologist/', PatientPsychologistView.as_view()),
+    path('psychologist/patients/', PsychologistPatientsView.as_view()),
+    path('psychologist/patients/<int:patient_id>/', PsychologistPatientDetailView.as_view()),
+    path('calendar/', CalendarOverviewView.as_view()),
+    path('calendar/settings/', CalendarSettingsView.as_view()),
+    path('calendar/blocked-days/', CalendarBlockedDaysView.as_view()),
+    path('calendar/appointments/', CalendarAppointmentListCreateView.as_view()),
+    path('calendar/appointments/<int:appointment_id>/cancel/', CalendarAppointmentCancelView.as_view()),
+    path('calendar/appointments/<int:appointment_id>/reschedule/', CalendarAppointmentRescheduleView.as_view()),
 ]

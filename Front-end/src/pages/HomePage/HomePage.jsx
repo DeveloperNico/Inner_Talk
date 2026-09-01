@@ -88,7 +88,7 @@ export function HomePage() {
                                     </div>
                                     <div>
                                         <p className="font-semibold text-slate-900 leading-none">
-                                            Mente Serena
+                                            Inner Talk
                                         </p>
                                         <p className="text-sm text-slate-400">
                                             está aqui para escutar

@@ -21,8 +21,7 @@ import {
 import { Header } from '../../components/Header/Header';
 import { PageTitle } from '../../components/PageTitle/PageTitle';
 import { getMoodOption } from '../../data/moods';
-import { MOCK_PATIENTS, getMockPatientById } from '../../data/mockPatients';
-import { getStoredUser } from '../../data/storage';
+import { getPsychologistPatient, getPsychologistPatients, getStoredUser } from '../../data/storage';
 
 function getInitials(name) {
     return name
@@ -41,6 +40,8 @@ function getGreeting() {
 }
 
 function formatSessionLabel(isoDate) {
+    if (!isoDate) return 'Sessão não agendada';
+
     const date = new Date(isoDate);
     const now = new Date();
     const tomorrow = new Date(now);
@@ -66,27 +67,93 @@ export function PainelPage() {
     const navigate = useNavigate();
     const [user] = useState(() => getStoredUser());
     const [search, setSearch] = useState('');
+    const [patients, setPatients] = useState([]);
+    const [selectedPatient, setSelectedPatient] = useState(null);
+    const [isLoadingPatients, setIsLoadingPatients] = useState(true);
+    const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+
+    useEffect(() => {
+        let isCancelled = false;
+
+        const loadPatients = async () => {
+            if (!user || user.role !== 'psicologo') {
+                setIsLoadingPatients(false);
+                return;
+            }
+
+            try {
+                const items = await getPsychologistPatients();
+                if (isCancelled) return;
+
+                setPatients(items);
+                setErrorMessage('');
+                if (!pacienteId && items.length > 0) {
+                    navigate(`/painel/${items[0].id}`, { replace: true });
+                }
+            } catch (error) {
+                if (!isCancelled) {
+                    setErrorMessage(error.message || 'Não foi possível carregar os pacientes.');
+                }
+            } finally {
+                if (!isCancelled) {
+                    setIsLoadingPatients(false);
+                }
+            }
+        };
+
+        loadPatients();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [user, pacienteId, navigate]);
+
+    useEffect(() => {
+        let isCancelled = false;
+
+        const loadPatientDetail = async () => {
+            if (!user || user.role !== 'psicologo' || !pacienteId) {
+                setSelectedPatient(null);
+                return;
+            }
+
+            setIsLoadingDetail(true);
+            try {
+                const payload = await getPsychologistPatient(pacienteId);
+                if (!isCancelled) {
+                    setSelectedPatient(payload);
+                    setErrorMessage('');
+                }
+            } catch (error) {
+                if (!isCancelled) {
+                    setSelectedPatient(null);
+                    setErrorMessage(error.message || 'Não foi possível carregar o resumo do paciente.');
+                }
+            } finally {
+                if (!isCancelled) {
+                    setIsLoadingDetail(false);
+                }
+            }
+        };
+
+        loadPatientDetail();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [user, pacienteId]);
 
     const filteredPatients = useMemo(() => {
         const term = search.trim().toLowerCase();
-        if (!term) return MOCK_PATIENTS;
-        return MOCK_PATIENTS.filter((patient) => patient.name.toLowerCase().includes(term));
-    }, [search]);
+        if (!term) return patients;
+        return patients.filter((patient) => patient.name.toLowerCase().includes(term));
+    }, [patients, search]);
 
-    // Garante que sempre exista um paciente selecionado na URL (a lista
-    // nunca fica sem detalhe ao lado, igual ao layout de referência).
-    useEffect(() => {
-        if (!pacienteId && MOCK_PATIENTS.length > 0) {
-            navigate(`/painel/${MOCK_PATIENTS[0].id}`, { replace: true });
-        }
-    }, [pacienteId, navigate]);
-
-    const selectedPatient = pacienteId ? getMockPatientById(pacienteId) : null;
-
-    const sessionsToday = MOCK_PATIENTS.filter(
-        (patient) => new Date(patient.nextSession).toDateString() === new Date().toDateString()
+    const sessionsToday = patients.filter(
+        (patient) => patient.nextSession && new Date(patient.nextSession).toDateString() === new Date().toDateString()
     ).length;
-    const attentionCount = MOCK_PATIENTS.filter((patient) => patient.alertsCount > 0).length;
+    const attentionCount = patients.filter((patient) => patient.alertsCount > 0).length;
 
     if (!user || user.role !== 'psicologo') {
         return (
@@ -109,9 +176,15 @@ export function PainelPage() {
         );
     }
 
-    const averageMoodOption = selectedPatient ? getMoodOption(Math.round(selectedPatient.moodAverage)) : null;
+    const averageMoodOption = selectedPatient?.moodAverage
+        ? getMoodOption(Math.round(selectedPatient.moodAverage))
+        : null;
     const TrendIcon = selectedPatient ? TREND_ICONS[selectedPatient.moodTrend]?.icon || Minus : null;
     const trendColor = selectedPatient ? TREND_ICONS[selectedPatient.moodTrend]?.color || '#94a3b8' : null;
+    const summarySource = selectedPatient?.aiSummaryMeta?.source || 'unknown';
+    const summaryModel = selectedPatient?.aiSummaryMeta?.model || '-';
+    const fallbackReason = selectedPatient?.aiSummaryMeta?.fallbackReason || '';
+    const isAiSummary = summarySource === 'ai';
 
     return (
         <>
@@ -120,7 +193,6 @@ export function PainelPage() {
 
             <main className="pt-24 pb-16 min-h-screen bg-gradient-to-br from-[#E4FBF4] to-[#f3f9f7] px-6 md:px-10 lg:px-16">
                 <div className="max-w-6xl mx-auto flex flex-col gap-6">
-                    {/* Cabeçalho */}
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pt-6">
                         <div className="flex flex-col gap-1">
                             <p className="flex items-center gap-2 text-sm text-slate-500 font-secondary">
@@ -137,7 +209,7 @@ export function PainelPage() {
                             </p>
                         </div>
 
-                        <div className="flex gap-3">
+                        <div className="flex gap-3 flex-wrap">
                             <div className="bg-white rounded-2xl border border-slate-200 px-4 py-3 flex items-center gap-3 shadow-sm">
                                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#E8F6F6] text-[#3b9b8a] shrink-0">
                                     <Users size={18} />
@@ -145,7 +217,7 @@ export function PainelPage() {
                                 <div>
                                     <p className="text-xs text-slate-400 font-secondary">Pacientes</p>
                                     <p className="text-lg font-bold font-secondary text-slate-800 leading-none">
-                                        {MOCK_PATIENTS.length}
+                                        {patients.length}
                                     </p>
                                 </div>
                             </div>
@@ -176,9 +248,13 @@ export function PainelPage() {
                         </div>
                     </div>
 
-                    {/* Conteúdo: lista + detalhe */}
+                    {errorMessage && (
+                        <div className="bg-red-50 border border-red-100 rounded-2xl px-4 py-3 text-sm text-red-600 font-main">
+                            {errorMessage}
+                        </div>
+                    )}
+
                     <div className="flex flex-col lg:flex-row gap-6 items-start">
-                        {/* Sidebar de pacientes */}
                         <aside className="w-full lg:w-80 shrink-0 bg-white rounded-3xl border border-slate-200 shadow-sm p-4 flex flex-col gap-3">
                             <div className="relative">
                                 <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -192,14 +268,16 @@ export function PainelPage() {
                             </div>
 
                             <div className="flex flex-col gap-1.5 max-h-[420px] lg:max-h-[560px] overflow-y-auto">
-                                {filteredPatients.length === 0 && (
+                                {isLoadingPatients ? (
+                                    <p className="text-sm text-slate-500 font-main text-center py-4">Carregando pacientes...</p>
+                                ) : filteredPatients.length === 0 ? (
                                     <p className="text-sm text-slate-500 font-main text-center py-4">
                                         Nenhum paciente encontrado.
                                     </p>
-                                )}
+                                ) : null}
 
                                 {filteredPatients.map((patient) => {
-                                    const isSelected = patient.id === pacienteId;
+                                    const isSelected = String(patient.id) === pacienteId;
 
                                     return (
                                         <Link
@@ -232,10 +310,14 @@ export function PainelPage() {
                             </div>
                         </aside>
 
-                        {/* Detalhe do paciente selecionado */}
-                        {selectedPatient ? (
+                        {isLoadingDetail ? (
+                            <div className="flex-1 min-w-0 bg-white rounded-3xl border border-slate-200 shadow-sm p-10 flex items-center justify-center text-center">
+                                <p className="text-slate-500 font-main">
+                                    Carregando resumo do paciente...
+                                </p>
+                            </div>
+                        ) : selectedPatient ? (
                             <div className="flex-1 min-w-0 flex flex-col gap-5">
-                                {/* Card de topo */}
                                 <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 flex items-center gap-4 flex-wrap">
                                     <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,#6fc9b6,#4abba1)] text-white font-bold font-secondary text-lg">
                                         {getInitials(selectedPatient.name)}
@@ -262,7 +344,6 @@ export function PainelPage() {
                                     )}
                                 </div>
 
-                                {/* Mini stats */}
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                     <div className="bg-white rounded-2xl border border-slate-200 px-5 py-4">
                                         <p className="text-sm text-slate-400 font-main">Check-ins na semana</p>
@@ -284,7 +365,6 @@ export function PainelPage() {
                                     </div>
                                 </div>
 
-                                {/* Resumo gerado por IA */}
                                 <div className="bg-[#E4FBF1] rounded-3xl border border-emerald-100 p-6 flex flex-col gap-4">
                                     <div className="flex items-center gap-3">
                                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-[#4abba1] shadow-sm">
@@ -292,9 +372,9 @@ export function PainelPage() {
                                         </div>
                                         <div>
                                             <h3 className="font-bold font-secondary text-slate-900">
-                                                Resumo da semana · gerado por IA
+                                                {isAiSummary ? "Resumo da semana · gerado por IA" : "Resumo da semana · fallback local"}
                                             </h3>
-                                            <p className="text-xs text-slate-500 font-main">Leia antes da sessão</p>
+                                            <p className="text-xs text-slate-500 font-main">{isAiSummary ? `Modelo: ${summaryModel}` : `Fallback ativo (${summaryModel})`}</p>
                                         </div>
                                     </div>
 
